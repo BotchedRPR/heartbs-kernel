@@ -1,0 +1,290 @@
+/*
+ * SAMSUNG EXYNOS5515 board device tree source
+ *
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ *		http://www.samsung.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+#include "battery_macros.dtsi"
+
+#define MAX_FV 4420
+#define FV_FULL(fv)	(fv - 100)
+#define FV_RE(fv)	(fv - 100)
+
+&pinctrl_0 {
+	fg_alrtb: fg_alrtb {
+		/* init & sleep state = PIN_PULL_NONE(0) */
+		samsung,pins = "gpa0-0";
+		samsung,pin-pud = <0>;
+		samsung,pin-pud-pdn = <0>;
+	};
+
+	wpc_det: wpc_det {
+		samsung,pins = "gpa0-3";
+		samsung,pin-function = <0xf>;
+		samsung,pin-pud = <0>;
+		samsung,pin-drv = <0>;
+	};
+
+	wpc_irq: wpc_irq {
+		samsung,pins = "gpa0-7";
+		samsung,pin-function = <0xf>;
+		samsung,pin-pud = <0>;
+		samsung,pin-drv = <0>;
+	};
+
+	wpc_en: wpc-en {
+		samsung,pins = "gpq0-5";
+		samsung,pin-function = <1>;
+		samsung,pin-pud = <1>;
+		samsung,pin-drv = <0>;
+		samsung,pin-con-pdn = <3>;
+		samsung,pin-pud-pdn = <1>;
+	};
+};
+
+&pinctrl_4 {
+	wpc_ping_en: wpc-ping-en {
+		samsung,pins = "gpg5-0";
+		samsung,pin-function = <1>;
+		samsung,pin-pud = <0>;
+		samsung,pin-drv = <0>;
+		samsung,pin-con-pdn = <3>;
+		samsung,pin-pud-pdn = <0>;
+	};
+
+	wpc_gp1: wpc-gp1 {
+		samsung,pins = "gpg7-1";
+		samsung,pin-function = <0xf>;
+		samsung,pin-pud = <0>;
+		samsung,pin-drv = <0>;
+		samsung,pin-con-pdn = <3>;
+		samsung,pin-pud-pdn = <0>;
+	};
+};
+
+&hsi2c1_bus {
+	samsung,pin-con-pdn = <3>;
+	samsung,pin-pud-pdn = <3>;
+};
+
+&hsi2c_1 {
+	status = "okay";
+
+	cps4019-charger@30 {
+		compatible = "cps4019,i2c";
+		reg = <0x30>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&wpc_irq &wpc_en &wpc_det &wpc_ping_en &wpc_gp1>;
+		interrupts = <7 0 0>;
+		interrupt-parent = <&gpa0>;
+		cps4019,wpc_gp1 = <&gpg7 1 0x00>;
+		cps4019,wpc_int = <&gpa0 7 0x01>;
+		cps4019,wpc_det = <&gpa0 3 0x01>;
+		cps4019,wpc_en = <&gpq0 5 0x00>;
+		cps4019,wpc_ping_en = <&gpg5 0 0x00>;
+
+		cps4019,battery_name = "battery";
+		cps4019,charger_name = "s2mpw03-charger";
+		cps4019,fuelgauge_name = "s2mpw03-fuelgauge";
+		cps4019,wireless_name = "wireless";
+		cps4019,wireless_charger_name = "wpc";
+
+		cps4019,tx-off-high-temp = <480>;
+
+		cps4019,ping_duration = <200>;
+		cps4019,ps_wpc_en_toggle_time = <1050>;
+		cps4019,cc_cv_threshold = <30>;
+		cps4019,half_bridge_threshold = <20>;
+		cps4019,rx_id = <0x57>;
+
+		boot_mode = <SET_VM_FX(4800, 200)>;
+		tx_table = <
+			/* TX(id, type, phm, time, auth, fota)	CC							CV							HALF BRIDGE */
+			SET_TX(0x56, NORMAL, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Pulse Grobal PAD */
+			SET_TX(0x57, NORMAL, 1, 1050, 0, 0)		SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Pulse Vietnam PAD */
+			SET_TX(0x58, NORMAL, 1, 1050, 1, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Auth PAD */
+			SET_TX(0x59, NORMAL, 1, 900, 1, 1)		SET_VM_BT(4200, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x5A, NORMAL, 1, 900, 1, 1)		SET_VM_BT(4200, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x5B, NORMAL, 1, 900, 1, 1)		SET_VM_BT(4200, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x5C, NORMAL, 1, 900, 1, 1)		SET_VM_BT(4200, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x5D, NORMAL, 1, 900, 1, 1)		SET_VM_BT(4200, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x5E, NORMAL, 1, 900, 1, 1)		SET_VM_BT(4200, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x5F, NORMAL, 1, 900, 0, 0)		SET_VM_BT(4200, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+
+			SET_TX(0x70, MULTI, 1, 510, 0, 0)		SET_VM_BT(4100, 400, 100)	SET_VM_FX(4750, 150)		SET_VM_FX(4850, 150)	/* EP-N6100 */
+			SET_TX(0x71, MULTI, 1, 510, 0, 0)		SET_VM_BT(4100, 400, 100)	SET_VM_FX(4750, 150)		SET_VM_FX(4850, 150)	/* EP-P3100 */
+			SET_TX(0x72, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 100)	/* Phone TX mode */
+			SET_TX(0x73, MULTI, 1, 510, 0, 0)		SET_VM_BT(4100, 400, 100)	SET_VM_FX(4750, 150)		SET_VM_FX(4850, 150)	/* P5200 Gear mode */
+			SET_TX(0x74, MULTI, 1, 510, 0, 0)		SET_VM_BT(4000, 400, 100)	SET_VM_FX(4850, 150)		SET_VM_FX(4900, 200)	/* U1200 Gear mode */
+			SET_TX(0x75, MULTI, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* P6300, P4300 */
+			SET_TX(0x76, FAST_MULTI, 1, 1050, 0, 1)	SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* P5400 */
+			SET_TX(0x77, MULTI, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* SMAPP */
+			SET_TX(0x78, MULTI, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x79, MULTI, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x7A, MULTI, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x7B, MULTI, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x7C, MULTI, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x7D, MULTI, 1, 1050, 0, 1)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+			SET_TX(0x7E, ILLEGAL, 0, 1050, 0, 0)	SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Illegal PAD(KT) */
+			SET_TX(0x7F, MULTI, 1, 1050, 0, 0)		SET_VM_BT(4000, 300, 100)	SET_VM_FX(4700, 100)		SET_VM_FX(4800, 200)	/* Reserved */
+
+			SET_TX(0x80, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* B0 power sharing charge */
+			SET_TX(0x81, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* B1 power sharing charge */
+			SET_TX(0x82, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* B2 power sharing charge */
+			SET_TX(0x83, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x84, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x85, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x86, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x87, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x88, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x89, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x8A, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x8B, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x8C, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x8D, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x8E, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			SET_TX(0x8F, D2D, 1, 510, 0, 0)			SET_VM_FX(4600, 100)		SET_VM_FX(4700, 100)		SET_VM_FX(4800, 360)	/* Reserved */
+			>;
+	};
+};
+
+/ {
+	fragment@battery {
+		target-path = "/";
+		__overlay__ {
+			s2mpw03-charger {
+				battery,charger_name = "s2mpw03-charger";
+				battery,wireless_charger_name = "wpc";
+				battery,chg_float_voltage = <MAX_FV>;
+			};
+
+			s2mpw03-fuelgauge {
+				fuelgauge,fuel_alert_soc = <2>;
+				fuelgauge,capacity_max = <1000>;
+				fuelgauge,capacity_max_margin = <130>;
+				fuelgauge,capacity_min = <0>;
+				fuelgauge,capacity_calculation_type = <31>;
+				fuelgauge,type_str = "SDI";
+				fuelgauge,model_type = <1>;
+				fuelgauge,flag = <0>;
+			};
+
+			sb_adc: sb-adc {
+				compatible = "samsung,sb-adc";
+				status = "okay";
+
+				io-channels = <&exynos_adc 1>, <&exynos_adc 6>;
+				io-channel-names = "batt_temp", "blk_temp";
+				#io-channel-cells = <2>;
+				io-channel-ranges;
+			};
+
+			battery {
+				status = "okay";
+				compatible = "samsung,sec-battery";
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&fg_alrtb>;
+				/* battery,irq_gpio = <&gpa1 6 0>; */
+
+				battery,vendor = "Battery";
+				battery,charger_name = "s2mpw03-charger";
+				battery,fuelgauge_name = "s2mpw03-fuelgauge";
+				battery,wireless_charger_name = "wpc";
+				battery,technology = <2>; /* POWER_SUPPLY_TECHNOLOGY_LION */
+				battery,fgsrc_switch_name = "s2mpw03-fuelgauge"; /* Fuelgauge voltage source */
+
+				battery,chip_vendor = "LSI";
+				battery,temp_adc_type = <1>; /* SEC_BATTERY_ADC_TYPE_AP */
+				battery,temp_check_type = <2>; /* SEC_BATTERY_TEMP_CHECK_TEMP */
+				battery,thermal_source = <2>; /* SEC_BATTERY_THERMAL_SOURCE_ADC */
+
+				battery,polling_time = <10 30 30 30 3600>;
+				battery,store_mode_polling_time = <10 30 30 30 30>;
+
+				battery,adc_check_count = <6>;
+
+				battery,cable_check_type = <16>; /* SEC_BATTERY_CABLE_CHECK_CHGINT */
+				battery,cable_source_type = <1>; /* SEC_BATTERY_CABLE_SOURCE_EXTERNAL */
+				battery,polling_type = <1>; /* SEC_BATTERY_MONITOR_ALARM */
+				battery,monitor_initial_count = <0>;
+
+				battery,battery_check_type = <0>; /* SEC_BATTERY_CHECK_NONE */
+				battery,check_count = <0>;
+				battery,check_adc_max = <1440>;
+				battery,check_adc_min = <0>;
+
+				battery,ovp_uvlo_check_type = <3>; /* SEC_BATTERY_OVP_UVLO_CHGPOLLING */
+
+				battery,temp_check_count = <1>;
+
+				battery,full_check_type = <7>; /* SEC_BATTERY_FULLCHARGED_CHGPSY */
+				battery,full_check_type_2nd = <3>; /* SEC_BATTERY_FULLCHARGED_TIME */
+				battery,full_check_count = <2>;
+				battery,swell_full_check_count = <50>;
+				battery,chg_gpio_full_check = <0>;
+				battery,chg_polarity_full_check = <1>;
+
+				/* SEC_BATTERY_FULL_CONDITION_NOTIMEFULL | SEC_BATTERY_FULL_CONDITION_NOSLEEPINFULL | SEC_BATTERY_FULL_CONDITION_SOC */
+				battery,full_condition_type = <7>;
+				battery,full_condition_soc = <93>;
+				battery,full_condition_vcell = <FV_FULL(MAX_FV)>;
+
+				battery,recharge_check_count = <2>;
+				battery,recharge_condition_type = <4>; /* SEC_BATTERY_RECHARGE_CONDITION_VCELL */
+				battery,recharge_condition_soc = <98>;
+				battery,recharge_condition_vcell = <FV_RE(MAX_FV)>;
+
+				battery,chg_float_voltage = <MAX_FV>;
+
+				battery,wire_warm_overheat_thresh = <450>;
+				battery,wire_normal_warm_thresh = <420>;
+				battery,wire_cool1_normal_thresh = <180>;
+				battery,wire_cool2_cool1_thresh = <150>;
+				battery,wire_cool3_cool2_thresh = <50>;
+				battery,wire_cold_cool3_thresh = <0>;
+
+				battery,wireless_prevent_overheat_thresh = <500>;
+				battery,wireless_warm_overheat_thresh = <450>;
+				battery,wireless_normal_warm_thresh = <420>;
+				battery,wireless_cool1_normal_thresh = <180>;
+				battery,wireless_cool2_cool1_thresh = <150>;
+				battery,wireless_cool3_cool2_thresh = <50>;
+				battery,wireless_cold_cool3_thresh = <0>;
+
+				battery,high_temp_float = <4270>;
+				battery,swelling_high_rechg_voltage = <4120>;
+				battery,low_temp_float = <MAX_FV>;
+				battery,swelling_low_rechg_voltage = <4270>;
+
+				battery,enable_sysovlo_irq;
+
+				battery,single_charger_path;
+				battery,expired_time = <8400>;
+				battery,recharging_expired_time = <7500>;
+
+				battery,cisd_max_voltage_thr = <4450>; /* battery ovp detection voltage */
+
+				battery,cisd_alg_index = <7>;
+
+				battery,boot_mode_time = <175000>;
+				battery,lpm_boot_mode_time = <55000>;
+				battery,boot_charge_current = <175>;
+
+				/* cycle, chg_float_voltage, recharge_condition_vcell, full_condition_vcell, full_condition_soc */
+				battery,age_data = <
+						0 MAX_FV FV_RE(MAX_FV) FV_FULL(MAX_FV) 93		/*4.430*/
+						300 4400 FV_RE(4400) FV_FULL(4400) 92	/*4.400*/
+						400 4380 FV_RE(4380) FV_FULL(4380) 91	/*4.380*/
+						700 4360 FV_RE(4360) FV_FULL(4360) 90	/*4.360*/
+						1000 4310 FV_RE(4310) FV_FULL(4310) 89	/*4.310*/
+						>;
+			};
+		};
+	};
+};
